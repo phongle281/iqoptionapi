@@ -1,8 +1,37 @@
-[MASTER]
-disable=locally-disabled, duplicate-code, useless-super-delegation
+import math
+import time
+from datetime import datetime
+from iqoptionapi.stable_api import IQ_Option
 
-[DESIGN]
-min-public-methods=0
+ACTIVES = "EURUSD"
+duration = 1
+action = "call"
+amount = 10
+rate = 0.87
+I_want_money = IQ_Option("email","password")
+I_want_money.connect()
 
-[FORMAT]
-max-line-length=100
+def call(amount_money):
+    _,id = (I_want_money.buy_digital_spot(ACTIVES, amount_money, action, duration))
+    print("{0:<30s},Goi lenh :{1}$".format(str(datetime.now()), str(amount_money)))
+    while True:
+        check, win = I_want_money.check_win_digital_v2(id)
+        if check:
+            return win
+
+if __name__ == '__main__':
+    lost_money = 0
+    while True:
+        win = 0
+        if lost_money != 0:
+            money = math.ceil(lost_money/rate + amount)
+            win = call(money)
+        else:
+            win = call(amount)
+        if win < 0:
+            print("{0:<30s},Ban thua :{1}$".format(str(datetime.now()),str(win)))
+            lost_money = lost_money - win
+        else:
+            print("{0:<30s},Ban thang:{1}$".format(str(datetime.now()),str(win)))
+            lost_money = 0
+        time.sleep(1)
